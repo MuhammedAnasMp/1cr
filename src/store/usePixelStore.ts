@@ -118,7 +118,10 @@ export const usePixelStore = create<PixelStore>((set, get) => ({
       const res = await fetch('/api/pixels');
       if (res.ok) {
         const data = await res.json();
-        set({ pixels: data.pixels || {} });
+        set({ 
+          pixels: data.pixels || {},
+          profiles: data.profiles || {},
+        });
       }
     } catch (e) {
       console.warn('Error fetching production pixels from database:', e);
@@ -246,6 +249,17 @@ export const usePixelStore = create<PixelStore>((set, get) => ({
     set((state) => {
       if (!state.currentUser || !state.userProfile) return state;
       const updatedProfile = { ...state.userProfile, ...profileData };
+
+      // Persist profile updates asynchronously to Neon Postgres database
+      fetch('/api/profiles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: state.currentUser.id,
+          profile: updatedProfile,
+        }),
+      }).catch((e) => console.error('Error saving profile changes to database:', e));
+
       return {
         userProfile: updatedProfile,
         profiles: { ...state.profiles, [state.currentUser.id]: updatedProfile },
@@ -301,11 +315,12 @@ export const usePixelStore = create<PixelStore>((set, get) => ({
 
     const updatedPixels = { ...state.pixels };
     const coordsList: { x: number; y: number }[] = [];
+    const dbPixelsList: any[] = [];
 
     selected.forEach((key) => {
       const [x, y] = key.split(',').map(Number);
       coordsList.push({ x, y });
-      updatedPixels[key] = {
+      const pixelData = {
         id: x * 1000 + y,
         x,
         y,
@@ -318,6 +333,8 @@ export const usePixelStore = create<PixelStore>((set, get) => ({
         profile_id: profileId,
         created_at: new Date().toISOString(),
       };
+      updatedPixels[key] = pixelData;
+      dbPixelsList.push(pixelData);
     });
 
     const newOrder: Order = {
@@ -330,6 +347,19 @@ export const usePixelStore = create<PixelStore>((set, get) => ({
       pixel_coords: coordsList,
       created_at: new Date().toISOString(),
     };
+
+    // Save purchase transaction in Neon Postgres database asynchronously
+    fetch('/api/pixels', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user,
+        profile: newProfile,
+        links: newProfile.links,
+        pixels: dbPixelsList,
+        order: newOrder,
+      }),
+    }).catch((e) => console.error('Failed to save purchase details in database:', e));
 
     set({
       currentUser: user,

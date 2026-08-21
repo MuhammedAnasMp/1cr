@@ -20,6 +20,7 @@ export const PixelCanvas: React.FC = () => {
     hoveredPixel,
     setHoveredPixel,
     setCanvasMetrics,
+    isSelectionMode,
   } = usePixelStore();
 
   const [isPanning, setIsPanning] = useState(false);
@@ -204,7 +205,7 @@ export const PixelCanvas: React.FC = () => {
     const clientX = e.clientX - rect.left;
     const clientY = e.clientY - rect.top;
 
-    if (e.shiftKey || e.button === 2) {
+    if (isSelectionMode || e.shiftKey || e.ctrlKey || e.metaKey || e.button === 2) {
       setIsSelecting(true);
       const gridPos = screenToGrid(clientX, clientY);
       setSelectStart(gridPos);
@@ -246,12 +247,17 @@ export const PixelCanvas: React.FC = () => {
 
   const handleMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (isSelecting && selectStart && selectEnd) {
-      setBoxSelection({
-        startX: selectStart.x,
-        startY: selectStart.y,
-        endX: selectEnd.x,
-        endY: selectEnd.y,
-      });
+      const isDrag = selectStart.x !== selectEnd.x || selectStart.y !== selectEnd.y;
+      if (isDrag) {
+        setBoxSelection({
+          startX: selectStart.x,
+          startY: selectStart.y,
+          endX: selectEnd.x,
+          endY: selectEnd.y,
+        });
+      } else {
+        togglePixelSelection(selectStart.x, selectStart.y, e.ctrlKey || e.metaKey || e.shiftKey || isSelectionMode);
+      }
       setIsSelecting(false);
       setSelectStart(null);
       setSelectEnd(null);
@@ -260,7 +266,7 @@ export const PixelCanvas: React.FC = () => {
       if (canvas) {
         const rect = canvas.getBoundingClientRect();
         const gridPos = screenToGrid(e.clientX - rect.left, e.clientY - rect.top);
-        togglePixelSelection(gridPos.x, gridPos.y, e.ctrlKey || e.metaKey);
+        togglePixelSelection(gridPos.x, gridPos.y, e.ctrlKey || e.metaKey || e.shiftKey || isSelectionMode);
       }
     }
     setIsPanning(false);
