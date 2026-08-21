@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_FIREBASE_PROJECT_ID=pixel-verse-demo
+      - RAZORPAY_KEY_ID=rzp_test_pixelverse2026
+      - RAZORPAY_KEY_SECRET=rzp_secret_pixelverse2026
+    restart: always
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    restart: always
