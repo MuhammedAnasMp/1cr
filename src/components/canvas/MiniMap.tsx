@@ -3,8 +3,10 @@
 import React, { useRef, useEffect } from 'react';
 import { usePixelStore } from '@/store/usePixelStore';
 
-const MINIMAP_SIZE = 140; // 140px x 140px radar box
-const CANVAS_GRID_SIZE = 1000;
+const WORLD_WIDTH = 4000;
+const WORLD_HEIGHT = 2500;
+const MINIMAP_WIDTH = 180;
+const MINIMAP_HEIGHT = 112.5;
 
 export const MiniMap: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -18,30 +20,32 @@ export const MiniMap: React.FC = () => {
 
     // Draw MiniMap Base Surface
     ctx.fillStyle = '#20201f';
-    ctx.fillRect(0, 0, MINIMAP_SIZE, MINIMAP_SIZE);
+    ctx.fillRect(0, 0, MINIMAP_WIDTH, MINIMAP_HEIGHT);
 
     // Draw Border
     ctx.strokeStyle = '#444748';
     ctx.lineWidth = 1;
-    ctx.strokeRect(0, 0, MINIMAP_SIZE, MINIMAP_SIZE);
+    ctx.strokeRect(0, 0, MINIMAP_WIDTH, MINIMAP_HEIGHT);
 
     // Render Sold Clusters as Mini Dots
-    const scaleFactor = MINIMAP_SIZE / CANVAS_GRID_SIZE;
+    const scaleFactorX = MINIMAP_WIDTH / WORLD_WIDTH;
+    const scaleFactorY = MINIMAP_HEIGHT / WORLD_HEIGHT;
+
     Object.values(pixels).forEach((pixel) => {
       if (pixel.status === 'sold') {
         ctx.fillStyle = pixel.color || '#8FE3FF';
-        const miniX = pixel.x * scaleFactor;
-        const miniY = pixel.y * scaleFactor;
+        const miniX = pixel.x * scaleFactorX;
+        const miniY = pixel.y * scaleFactorY;
         ctx.fillRect(miniX, miniY, 2, 2);
       }
     });
 
     // Compute Viewport Bounding Box on MiniMap
     const pixelSize = 16;
-    const viewWidth = (window.innerWidth / (pixelSize * viewport.scale)) * scaleFactor;
-    const viewHeight = (window.innerHeight / (pixelSize * viewport.scale)) * scaleFactor;
-    const viewX = (-viewport.x / (pixelSize * viewport.scale)) * scaleFactor;
-    const viewY = (-viewport.y / (pixelSize * viewport.scale)) * scaleFactor;
+    const viewWidth = (window.innerWidth / (pixelSize * viewport.scale)) * scaleFactorX;
+    const viewHeight = (window.innerHeight / (pixelSize * viewport.scale)) * scaleFactorY;
+    const viewX = (-viewport.x / (pixelSize * viewport.scale)) * scaleFactorX;
+    const viewY = (-viewport.y / (pixelSize * viewport.scale)) * scaleFactorY;
 
     ctx.strokeStyle = '#B6B2FF';
     ctx.lineWidth = 1.5;
@@ -59,8 +63,8 @@ export const MiniMap: React.FC = () => {
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
 
-    const gridX = Math.floor((clickX / MINIMAP_SIZE) * CANVAS_GRID_SIZE);
-    const gridY = Math.floor((clickY / MINIMAP_SIZE) * CANVAS_GRID_SIZE);
+    const gridX = Math.floor((clickX / MINIMAP_WIDTH) * WORLD_WIDTH);
+    const gridY = Math.floor((clickY / MINIMAP_HEIGHT) * WORLD_HEIGHT);
 
     jumpToCoords(gridX, gridY);
   };
@@ -73,8 +77,8 @@ export const MiniMap: React.FC = () => {
       </div>
       <canvas
         ref={canvasRef}
-        width={MINIMAP_SIZE}
-        height={MINIMAP_SIZE}
+        width={MINIMAP_WIDTH}
+        height={MINIMAP_HEIGHT}
         onClick={handleMiniMapClick}
         className="cursor-crosshair rounded border border-outline-variant block"
       />

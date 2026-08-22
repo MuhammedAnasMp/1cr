@@ -17,6 +17,7 @@ export interface LinkItem {
   icon?: string;
   sort_order: number;
   clicks?: number;
+  assigned_pixels?: string[];
 }
 
 export interface Profile {

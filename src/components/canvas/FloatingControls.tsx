@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { usePixelStore } from '@/store/usePixelStore';
-import { Plus, Minus, Maximize2, Search, Map, MousePointerClick, ShoppingBag } from 'lucide-react';
+import { Plus, Minus, Maximize2, Minimize2, Search, Map, MousePointerClick, ShoppingBag } from 'lucide-react';
 
 interface FloatingControlsProps {
   showMiniMap: boolean;
@@ -14,6 +14,7 @@ export const FloatingControls: React.FC<FloatingControlsProps> = ({ showMiniMap,
     zoomIn,
     zoomOut,
     resetView,
+    fitToFrame,
     jumpToCoords,
     isSelectionMode,
     toggleSelectionMode,
@@ -44,17 +45,12 @@ export const FloatingControls: React.FC<FloatingControlsProps> = ({ showMiniMap,
         {/* Purchase Mode / Slot Selection Toggle Button */}
         <button
           onClick={toggleSelectionMode}
-          className={`p-2.5 transition-colors rounded-t-xl relative ${
-            isSelectionMode ? 'text-active-cyan bg-surface-container-lowest' : 'text-on-surface-variant hover:text-white hover:bg-surface-container-high'
-          }`}
+          className={`p-2.5 transition-colors rounded-t-xl relative ${isSelectionMode ? 'text-active-cyan bg-surface-container-lowest' : 'text-on-surface-variant hover:text-white hover:bg-surface-container-high'
+            }`}
           title={isSelectionMode ? 'Slot Selection Active (Click/Drag to select land)' : 'Enable Slot Selection Mode'}
         >
           <MousePointerClick className="w-4.5 h-4.5" />
-          {selectedCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-active-cyan text-background font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center">
-              {selectedCount}
-            </span>
-          )}
+
         </button>
 
         <button
@@ -82,6 +78,14 @@ export const FloatingControls: React.FC<FloatingControlsProps> = ({ showMiniMap,
         </button>
 
         <button
+          onClick={fitToFrame}
+          className="p-2.5 text-white hover:text-active-cyan hover:bg-surface-container-high transition-colors"
+          title="Fit All 10,000,000 Pixels in One Frame"
+        >
+          <Minimize2 className="w-4 h-4" />
+        </button>
+
+        <button
           onClick={() => setShowSearchModal(true)}
           className="p-2.5 text-white hover:text-active-cyan hover:bg-surface-container-high transition-colors"
           title="Search Coordinates"
@@ -91,9 +95,8 @@ export const FloatingControls: React.FC<FloatingControlsProps> = ({ showMiniMap,
 
         <button
           onClick={() => setShowMiniMap(!showMiniMap)}
-          className={`p-2.5 transition-colors rounded-b-xl ${
-            showMiniMap ? 'text-active-cyan bg-surface-container-lowest' : 'text-on-surface-variant hover:text-white hover:bg-surface-container-high'
-          }`}
+          className={`p-2.5 transition-colors rounded-b-xl ${showMiniMap ? 'text-active-cyan bg-surface-container-lowest' : 'text-on-surface-variant hover:text-white hover:bg-surface-container-high'
+            }`}
           title="Toggle Mini Map Radar"
         >
           <Map className="w-4 h-4" />

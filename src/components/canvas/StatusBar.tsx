@@ -2,70 +2,68 @@
 
 import React from 'react';
 import { usePixelStore } from '@/store/usePixelStore';
-import { Crosshair, ShoppingBag, Activity, CheckSquare } from 'lucide-react';
+import { ShoppingBag, X, RotateCcw, RotateCw } from 'lucide-react';
 
 export const StatusBar: React.FC = () => {
   const {
-    hoveredPixel,
     selectedCoords,
-    viewport,
-    fps,
-    renderedTilesCount,
     openCheckoutModal,
     clearSelection,
+    undoSelection,
+    redoSelection,
+    historyIndex,
+    selectionHistory,
   } = usePixelStore();
 
   const selectedCount = selectedCoords.size;
   const totalPrice = selectedCount * 10;
 
+  const canUndo = historyIndex > 0;
+  const canRedo = historyIndex < selectionHistory.length - 1;
+
+  // Only render when pixels are selected!
+  if (selectedCount === 0) return null;
+
   return (
-    <footer className="sticky bottom-0 z-30 w-full bg-surface/90 backdrop-blur-md border-t border-outline-variant px-4 py-2 flex items-center justify-between text-xs text-on-surface-variant select-none">
-      {/* Left: Coordinate Display matching reference format */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-1.5 font-mono text-white text-[13px]">
-          <Crosshair className="w-3.5 h-3.5 text-active-cyan" />
-          <span>
-            X: <strong className="text-active-cyan">{hoveredPixel?.pixel ? hoveredPixel.pixel.x : 0}</strong> | Y:{' '}
-            <strong className="text-active-cyan">{hoveredPixel?.pixel ? hoveredPixel.pixel.y : 0}</strong> | Zoom:{' '}
-            <strong className="text-active-cyan">{viewport.scale.toFixed(2)}</strong>
-          </span>
-        </div>
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-[#141417]/95 border border-active-cyan/40 rounded-full px-4 py-2.5 shadow-[0_10px_40px_rgba(0,229,255,0.25)] backdrop-blur-xl flex items-center gap-2.5 animate-in fade-in slide-in-from-bottom-4 duration-200 select-none">
+      {/* Primary Checkout Action Button */}
+      <button
+        onClick={openCheckoutModal}
+        className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-neutral-200 text-black font-extrabold text-xs uppercase tracking-wider rounded-full transition-all shadow-lg hover:scale-105 active:scale-95"
+      >
+        <ShoppingBag className="w-4 h-4 text-black" />
+        <span>Checkout & Claim (₹{totalPrice})</span>
+      </button>
 
-        {selectedCount > 0 && (
-          <div className="flex items-center gap-2 pl-3 border-l border-outline-variant">
-            <CheckSquare className="w-3.5 h-3.5 text-active-cyan" />
-            <span className="text-active-cyan font-semibold">
-              {selectedCount} Selected (₹{totalPrice})
-            </span>
-            <button
-              onClick={clearSelection}
-              className="text-[10px] text-on-surface-variant hover:text-error underline transition-colors"
-            >
-              Clear
-            </button>
-          </div>
-        )}
-      </div>
+      {/* Undo Selection Button */}
+      <button
+        onClick={undoSelection}
+        disabled={!canUndo}
+        className="p-2 bg-[#222228] hover:bg-[#2e2e36] text-neutral-300 hover:text-white font-bold text-xs rounded-full transition-all border border-[#383842] disabled:opacity-30 disabled:pointer-events-none"
+        title="Undo Selection (Ctrl+Z / Cmd+Z)"
+      >
+        <RotateCcw className="w-3.5 h-3.5" />
+      </button>
 
-      {/* Center: Quick Checkout Callout */}
-      {selectedCount > 0 && (
-        <div className="hidden sm:flex items-center gap-2">
-          <button
-            onClick={openCheckoutModal}
-            className="flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-neutral-200 text-background font-bold text-xs rounded transition-colors shadow"
-          >
-            <ShoppingBag className="w-3.5 h-3.5" />
-            Checkout & Claim for ₹{totalPrice}
-          </button>
-        </div>
-      )}
+      {/* Redo Selection Button */}
+      <button
+        onClick={redoSelection}
+        disabled={!canRedo}
+        className="p-2 bg-[#222228] hover:bg-[#2e2e36] text-neutral-300 hover:text-white font-bold text-xs rounded-full transition-all border border-[#383842] disabled:opacity-30 disabled:pointer-events-none"
+        title="Redo Selection (Ctrl+Shift+Z / Cmd+Shift+Z)"
+      >
+        <RotateCw className="w-3.5 h-3.5" />
+      </button>
 
-      {/* Right: Engine FPS Metrics */}
-      <div className="flex items-center gap-3 font-mono text-[11px] bg-surface-container px-2.5 py-1 rounded border border-outline-variant">
-        <Activity className="w-3 h-3 text-[#81C995]" />
-        <span className="text-[#81C995] font-bold">{fps} FPS</span>
-        <span className="text-on-surface-variant text-[10px]">({renderedTilesCount} tiles)</span>
-      </div>
-    </footer>
+      {/* Clear Selection Button with Pixel Count */}
+      <button
+        onClick={clearSelection}
+        className="flex items-center gap-1.5 px-3 py-2 bg-[#222228] hover:bg-[#2e2e36] text-neutral-300 hover:text-white font-bold text-xs rounded-full transition-all border border-[#383842]"
+        title="Clear Selection"
+      >
+        <X className="w-3.5 h-3.5 text-neutral-400" />
+        <span>Clear ({selectedCount})</span>
+      </button>
+    </div>
   );
 };

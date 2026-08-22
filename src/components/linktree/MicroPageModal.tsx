@@ -54,9 +54,14 @@ export const MicroPageModal: React.FC = () => {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full py-3.5 px-4 rounded bg-surface-container-highest hover:text-active-cyan border border-outline-variant text-white text-sm font-semibold text-center transition-all duration-200 shadow"
+              className="block w-full py-3 px-4 rounded bg-surface-container-highest hover:text-active-cyan border border-outline-variant text-white text-sm font-semibold text-center transition-all duration-200 shadow group"
             >
-              {link.title}
+              <div>{link.title}</div>
+              {link.assigned_pixels && link.assigned_pixels.length > 0 && (
+                <span className="text-[10px] text-active-cyan/90 group-hover:text-active-cyan font-mono block font-medium mt-0.5">
+                  Linked to {link.assigned_pixels.length} Pixel{link.assigned_pixels.length > 1 ? 's' : ''}
+                </span>
+              )}
             </a>
           ))}
         </div>
