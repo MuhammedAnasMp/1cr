@@ -31,8 +31,14 @@ interface PixelStore {
   getTopBuyers: () => TopBuyer[];
   fetchPixels: () => Promise<void>;
 
+  // Real-time patch — called by Firebase RTDB listener
+  patchPixel: (data: Partial<Pixel> & { x: number; y: number }) => void;
+
   // Selection
   selectedCoords: Set<string>; // "x,y"
+  selectionHistory: Set<string>[];
+  historyIndex: number;
+  pushSelectionState: (newCoords: Set<string>) => void;
   togglePixelSelection: (x: number, y: number, isMultiSelect?: boolean) => void;
   setBoxSelection: (area: SelectionArea, isMultiSelect?: boolean) => void;
   clearSelection: () => void;
@@ -52,6 +58,9 @@ interface PixelStore {
   isCheckoutOpen: boolean;
   openCheckoutModal: () => void;
   closeCheckoutModal: () => void;
+
+  // Session ID (unique per browser tab — used for pixel reservations)
+  sessionId: string;
 
   // User Auth & Session (Strictly LIVE Production Data)
   currentUser: User | null;
@@ -122,12 +131,19 @@ export const usePixelStore = create<PixelStore>((set, get) => ({
     try {
       const savedPixels = localStorage.getItem('local_pixels_backup');
       const savedProfiles = localStorage.getItem('local_profiles_backup');
+      const savedUser = localStorage.getItem('local_user_backup');
+      const savedUserProfile = localStorage.getItem('local_user_profile_backup');
+
       const parsedPixels = savedPixels ? JSON.parse(savedPixels) : {};
       const parsedProfiles = savedProfiles ? JSON.parse(savedProfiles) : {};
+      const parsedUser = savedUser ? JSON.parse(savedUser) : null;
+      const parsedUserProfile = savedUserProfile ? JSON.parse(savedUserProfile) : null;
 
       set((state) => ({
         pixels: { ...parsedPixels, ...state.pixels },
         profiles: { ...parsedProfiles, ...state.profiles },
+        currentUser: state.currentUser || parsedUser,
+        userProfile: state.userProfile || parsedUserProfile,
       }));
     } catch (e) {}
 
@@ -151,14 +167,52 @@ export const usePixelStore = create<PixelStore>((set, get) => ({
   pixels: {},
   getPixel: (x: number, y: number) => get().pixels[`${x},${y}`],
 
+  // Real-time patch: called by Firebase RTDB onValue listener
+  patchPixel: (data) => {
+    const key = `${data.x},${data.y}`;
+    set((state) => {
+      const existing = state.pixels[key];
+      // If the event says 'available' (released reservation), remove from map
+      if (data.status === 'available') {
+        const next = { ...state.pixels };
+        if (next[key] && next[key].status === 'reserved') {
+          delete next[key];
+        }
+        return { pixels: next };
+      }
+      return {
+        pixels: {
+          ...state.pixels,
+          [key]: {
+            id: data.id ?? existing?.id ?? 0,
+            x: data.x,
+            y: data.y,
+            price: data.price ?? existing?.price ?? 10,
+            status: data.status ?? existing?.status ?? 'available',
+            color: data.color ?? existing?.color,
+            owner_id: data.owner_id ?? existing?.owner_id,
+            owner_name: data.owner_name ?? existing?.owner_name,
+            owner_avatar: data.owner_avatar ?? existing?.owner_avatar,
+            profile_id: data.profile_id ?? existing?.profile_id,
+            created_at: existing?.created_at,
+          },
+        },
+      };
+    });
+  },
+
   fetchPixels: async () => {
     try {
-      const res = await fetch('/api/pixels');
+      const state = get();
+      const url = state.currentUser ? `/api/pixels?userId=${state.currentUser.id}` : '/api/pixels';
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         set((state) => {
           const mergedPixels = { ...state.pixels, ...data.pixels };
           const mergedProfiles = { ...state.profiles, ...data.profiles };
+          const mergedOrders = data.orders && data.orders.length > 0 ? data.orders : state.orders;
+
           if (typeof window !== 'undefined') {
             try {
               localStorage.setItem('local_pixels_backup', JSON.stringify(mergedPixels));
@@ -168,6 +222,7 @@ export const usePixelStore = create<PixelStore>((set, get) => ({
           return { 
             pixels: mergedPixels,
             profiles: mergedProfiles,
+            orders: mergedOrders,
           };
         });
       }
@@ -260,6 +315,7 @@ export const usePixelStore = create<PixelStore>((set, get) => ({
     const pixel = get().pixels[key];
     const profiles = get().profiles;
 
+    // Sold pixels → open profile modal
     if (pixel && pixel.status === 'sold') {
       const ownerId = pixel.owner_id || '';
       const profile =
@@ -290,6 +346,12 @@ export const usePixelStore = create<PixelStore>((set, get) => ({
       return;
     }
 
+    // Reserved pixels → blocked, show brief toast via console (UI can intercept)
+    if (pixel && pixel.status === 'reserved') {
+      console.info('Pixel is temporarily reserved by another user — cannot select.');
+      return;
+    }
+
     const next = new Set(isMultiSelect ? get().selectedCoords : []);
     if (next.has(key)) {
       next.delete(key);
@@ -312,7 +374,8 @@ export const usePixelStore = create<PixelStore>((set, get) => ({
       for (let y = minY; y <= maxY; y++) {
         const key = `${x},${y}`;
         const px = currentPixels[key];
-        if (!px || px.status !== 'sold') {
+        // Skip sold AND reserved pixels — both are unavailable
+        if (!px || (px.status !== 'sold' && px.status !== 'reserved')) {
           next.add(key);
         }
       }
@@ -334,8 +397,62 @@ export const usePixelStore = create<PixelStore>((set, get) => ({
 
   // Checkout Modal
   isCheckoutOpen: false,
-  openCheckoutModal: () => set({ isCheckoutOpen: true }),
-  closeCheckoutModal: () => set({ isCheckoutOpen: false }),
+
+  // Session ID — unique per browser tab, used for pixel reservation
+  sessionId: (() => {
+    if (typeof window === 'undefined') return `sess_${Date.now()}`;
+    let id = sessionStorage.getItem('pixel_session_id');
+    if (!id) {
+      id = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      sessionStorage.setItem('pixel_session_id', id);
+    }
+    return id;
+  })(),
+
+  openCheckoutModal: () => {
+    const state = get();
+    const coords = Array.from(state.selectedCoords);
+    if (coords.length === 0) return;
+
+    // Optimistically mark selected pixels as 'reserved' in local store
+    // so they appear amber immediately in the current user's canvas too
+    const optimisticPixels = { ...state.pixels };
+    coords.forEach((key) => {
+      const [x, y] = key.split(',').map(Number);
+      const pixelId = y * 4000 + x + 1;
+      optimisticPixels[key] = {
+        id: pixelId,
+        x,
+        y,
+        price: 10,
+        status: 'reserved',
+        color: '#F59E0B',
+      };
+    });
+    set({ isCheckoutOpen: true, pixels: optimisticPixels });
+  },
+
+  closeCheckoutModal: () => {
+    const state = get();
+    const coords = Array.from(state.selectedCoords);
+
+    // Revert local optimistic reserved pixels back to available
+    const revertedPixels = { ...state.pixels };
+    coords.forEach((key) => {
+      const px = revertedPixels[key];
+      if (px && px.status === 'reserved') {
+        delete revertedPixels[key];
+      }
+    });
+    set({ isCheckoutOpen: false, pixels: revertedPixels });
+
+    // Release server-side reservations (DB + RTDB) — fire and forget
+    fetch('/api/pixels/reserve', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: state.sessionId }),
+    }).catch((e) => console.warn('Failed to release pixel reservations:', e));
+  },
 
   // LIVE User Auth & Session (Strictly NULL by default)
   currentUser: null,
@@ -345,6 +462,12 @@ export const usePixelStore = create<PixelStore>((set, get) => ({
   setCurrentUser: (currentUser) =>
     set((state) => {
       const profile = currentUser ? state.profiles[currentUser.id] || null : null;
+      if (typeof window !== 'undefined' && currentUser) {
+        try {
+          localStorage.setItem('local_user_backup', JSON.stringify(currentUser));
+          if (profile) localStorage.setItem('local_user_profile_backup', JSON.stringify(profile));
+        } catch (e) {}
+      }
       return { currentUser, userProfile: profile };
     }),
 

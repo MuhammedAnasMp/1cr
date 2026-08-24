@@ -45,6 +45,7 @@ export const PurchaseModal: React.FC = () => {
     selectedCoords,
     currentUser,
     completePurchase,
+    sessionId,
   } = usePixelStore();
 
   const coords = Array.from(selectedCoords);
@@ -59,6 +60,7 @@ export const PurchaseModal: React.FC = () => {
   ]);
   const [openGroupSelector, setOpenGroupSelector] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [conflictError, setConflictError] = useState<string | null>(null);
 
   useEffect(() => {
     if (currentUser) {
@@ -123,16 +125,34 @@ export const PurchaseModal: React.FC = () => {
 
   const handleRazorpayPayment = async () => {
     setIsProcessing(true);
+    setConflictError(null);
 
     try {
       const isLoaded = await loadRazorpayScript();
 
-      // Step 1: Call Backend API to create Razorpay Order
+      // Step 1: Call Backend API to create Razorpay Order + reserve pixels atomically
       const res = await fetch('/api/payment/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: totalPrice, count: selectedCount }),
+        body: JSON.stringify({
+          amount: totalPrice,
+          count: selectedCount,
+          coords,           // pass pixel coords for reservation
+          session_id: sessionId, // unique browser-tab session
+        }),
       });
+
+      // Handle conflict (409) — pixels were sold/reserved by someone else
+      if (res.status === 409) {
+        const conflictData = await res.json();
+        const takenCount = conflictData.taken?.length || 0;
+        const reason = conflictData.reason === 'sold' ? 'already purchased' : 'currently being purchased by another user';
+        setConflictError(
+          `⚠️ ${takenCount} pixel${takenCount > 1 ? 's are' : ' is'} ${reason}. They have been removed from your selection. Please review and try again.`
+        );
+        setIsProcessing(false);
+        return;
+      }
 
       const orderData = await res.json();
 
@@ -254,6 +274,14 @@ export const PurchaseModal: React.FC = () => {
               <span className="text-xl sm:text-2xl font-black text-white tracking-tight">₹{totalPrice}</span>
             </div>
           </div>
+
+          {/* Conflict / Availability Error Banner */}
+          {conflictError && (
+            <div className="bg-red-950/60 border border-red-500/40 rounded-xl px-4 py-3 text-xs text-red-300 font-medium flex items-start gap-2">
+              <span className="shrink-0 mt-0.5">⚠️</span>
+              <span>{conflictError}</span>
+            </div>
+          )}
 
           {/* Selected Pixel Numbers Chip Grid (1 - 10,000,000) */}
           <div className="space-y-1.5">

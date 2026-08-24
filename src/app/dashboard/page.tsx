@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/layout/Navbar';
 import { ProfileEditor } from '@/components/linktree/ProfileEditor';
@@ -9,8 +9,13 @@ import { Grid, User, BarChart3, Receipt, ArrowUpRight, Eye, MousePointerClick, G
 import { signInWithGoogle } from '@/lib/firebase';
 
 export default function DashboardPage() {
-  const { currentUser, setCurrentUser, pixels, orders, jumpToCoords } = usePixelStore();
+  const { currentUser, setCurrentUser, pixels, orders, jumpToCoords, initializeClientStore, fetchPixels } = usePixelStore();
   const [activeTab, setActiveTab] = useState<'pixels' | 'profile' | 'analytics' | 'payments'>('pixels');
+
+  useEffect(() => {
+    initializeClientStore();
+    fetchPixels();
+  }, [initializeClientStore, fetchPixels]);
 
   if (!currentUser) {
     return (

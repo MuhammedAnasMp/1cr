@@ -74,6 +74,19 @@ export async function initPostgres() {
         pixels_count INT,
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS pixel_reservations (
+        pixel_id    BIGINT PRIMARY KEY,
+        x           INT NOT NULL,
+        y           INT NOT NULL,
+        session_id  VARCHAR(255) NOT NULL,
+        razorpay_order_id VARCHAR(255),
+        expires_at  TIMESTAMPTZ NOT NULL,
+        created_at  TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_reservations_expires ON pixel_reservations(expires_at);
+      CREATE INDEX IF NOT EXISTS idx_reservations_session ON pixel_reservations(session_id);
     `);
   } finally {
     client.release();

@@ -1,16 +1,19 @@
 import { NextResponse } from 'next/server';
 import { initPostgres, pool } from '@/lib/db';
 import { generateInitialPixels } from '@/lib/demoData';
+import { broadcastPixelEvent, releasePixelEvents, updateCanvasStats } from '@/lib/firebaseAdmin';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const minX = parseInt(searchParams.get('minX') || '0', 10);
-  const maxX = parseInt(searchParams.get('maxX') || '10000', 10);
+  const maxX = parseInt(searchParams.get('maxX') || '4000', 10);
   const minY = parseInt(searchParams.get('minY') || '0', 10);
-  const maxY = parseInt(searchParams.get('maxY') || '1000', 10);
+  const maxY = parseInt(searchParams.get('maxY') || '2500', 10);
+  const userId = searchParams.get('userId');
 
   let pixels: Record<string, any> = {};
   let profilesMap: Record<string, any> = {};
+  let userOrders: any[] = [];
   let total = 0;
 
   try {
@@ -50,6 +53,41 @@ export async function GET(request: Request) {
       };
       profilesMap[prof.id] = profilesMap[prof.user_id];
     }
+
+    // Fetch user orders if userId is provided
+    if (userId) {
+      const ordersRes = await pool.query(
+        `SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC`,
+        [userId]
+      );
+      userOrders = ordersRes.rows;
+    }
+    // Fetch all non-expired reservations and overlay onto pixel map
+    try {
+      const resRes = await pool.query(
+        `SELECT pixel_id, x, y, session_id, expires_at FROM pixel_reservations
+         WHERE expires_at > NOW() AND x >= $1 AND x <= $2 AND y >= $3 AND y <= $4`,
+        [minX, maxX, minY, maxY]
+      );
+      resRes.rows.forEach((r) => {
+        const key = `${r.x},${r.y}`;
+        // Only mark as reserved if not already sold
+        if (!pixels[key] || pixels[key].status !== 'sold') {
+          pixels[key] = {
+            id: Number(r.pixel_id),
+            x: r.x,
+            y: r.y,
+            price: 10,
+            status: 'reserved' as const,
+            color: '#F59E0B',
+            created_at: r.expires_at,
+          };
+        }
+      });
+    } catch (err) {
+      // reservations table may not exist yet on first run — non-fatal
+      console.warn('Could not fetch reservations (non-fatal):', err);
+    }
   } catch (err) {
     console.warn('Neon Postgres query fallback to demo dataset:', err);
     pixels = generateInitialPixels();
@@ -61,8 +99,10 @@ export async function GET(request: Request) {
     bounds: { minX, maxX, minY, maxY },
     pixels,
     profiles: profilesMap,
+    orders: userOrders,
   });
 }
+
 
 export async function POST(request: Request) {
   try {
@@ -100,14 +140,41 @@ export async function POST(request: Request) {
         `, [link.id, link.profile_id, link.title, link.url, link.sort_order]);
       }
 
-      // 4. Insert/Claim Pixels
-      for (const px of pixels) {
-        await client.query(`
-          INSERT INTO pixels (id, x, y, owner_id, owner_name, owner_avatar, price, status, color, profile_id, created_at)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
-          ON CONFLICT (id) DO UPDATE
-          SET owner_id = EXCLUDED.owner_id, owner_name = EXCLUDED.owner_name, owner_avatar = EXCLUDED.owner_avatar, status = EXCLUDED.status, color = EXCLUDED.color, profile_id = EXCLUDED.profile_id
-        `, [px.id, px.x, px.y, px.owner_id, px.owner_name, px.owner_avatar, px.price, px.status, px.color, px.profile_id]);
+      // 4. Bulk Insert/Claim Pixels (High-Performance Single Batch Query)
+      if (pixels && pixels.length > 0) {
+        // Process in chunks of 500 pixels to respect PostgreSQL parameter limits
+        const CHUNK_SIZE = 500;
+        for (let i = 0; i < pixels.length; i += CHUNK_SIZE) {
+          const chunk = pixels.slice(i, i + CHUNK_SIZE);
+          const values: any[] = [];
+          const valueStrings: string[] = [];
+
+          chunk.forEach((px: any, idx: number) => {
+            const base = idx * 10;
+            valueStrings.push(`($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6}, $${base + 7}, $${base + 8}, $${base + 9}, $${base + 10}, NOW())`);
+            values.push(
+              px.id,
+              px.x,
+              px.y,
+              px.owner_id,
+              px.owner_name,
+              px.owner_avatar,
+              px.price || 10,
+              px.status || 'sold',
+              px.color || '#00e5ff',
+              px.profile_id
+            );
+          });
+
+          const batchQuery = `
+            INSERT INTO pixels (id, x, y, owner_id, owner_name, owner_avatar, price, status, color, profile_id, created_at)
+            VALUES ${valueStrings.join(', ')}
+            ON CONFLICT (id) DO UPDATE
+            SET owner_id = EXCLUDED.owner_id, owner_name = EXCLUDED.owner_name, owner_avatar = EXCLUDED.owner_avatar, status = EXCLUDED.status, color = EXCLUDED.color, profile_id = EXCLUDED.profile_id
+          `;
+
+          await client.query(batchQuery, values);
+        }
       }
 
       // 5. Insert Order
@@ -118,6 +185,37 @@ export async function POST(request: Request) {
       `, [order.id, order.user_id, order.amount, order.razorpay_order_id, order.status, order.pixels_count]);
 
       await client.query('COMMIT');
+
+      // ── After successful DB commit: broadcast sold events to Firebase RTDB ──
+      // This updates all connected clients' canvases in real time (<200ms)
+      const soldPixelIds = pixels.map((px: any) => Number(px.id));
+
+      // Fire-and-forget RTDB broadcasts (non-blocking, non-critical)
+      Promise.all(
+        pixels.map((px: any) =>
+          broadcastPixelEvent(Number(px.id), {
+            status: 'sold',
+            x: px.x,
+            y: px.y,
+            owner_id: px.owner_id,
+            owner_name: px.owner_name,
+            owner_avatar: px.owner_avatar,
+            color: px.color || '#00e5ff',
+            profile_id: px.profile_id,
+          })
+        )
+      ).catch((e) => console.warn('RTDB broadcast partial failure:', e));
+
+      // Clean up reservations for these pixels in DB (if any)
+      pool
+        .query(`DELETE FROM pixel_reservations WHERE pixel_id = ANY($1)`, [soldPixelIds])
+        .catch((e) => console.warn('Reservation cleanup error (non-critical):', e));
+
+      // Release RTDB reservation nodes
+      releasePixelEvents(soldPixelIds).catch(() => {});
+
+      // Update canvas stats
+      updateCanvasStats({ sold: pixels.length, reserved: -pixels.length }).catch(() => {});
     } catch (err) {
       await client.query('ROLLBACK');
       throw err;

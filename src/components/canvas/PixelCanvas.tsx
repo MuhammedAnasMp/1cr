@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { usePixelStore } from '@/store/usePixelStore';
+import { useRealtimePixels } from '@/lib/useRealtimePixels';
 import { Crosshair } from 'lucide-react';
 
 const PIXEL_SIZE = 16; // Each grid unit is 16px x 16px
@@ -38,6 +39,9 @@ export const PixelCanvas: React.FC = () => {
   const [selectStart, setSelectStart] = useState<{ x: number; y: number } | null>(null);
   const [selectEnd, setSelectEnd] = useState<{ x: number; y: number } | null>(null);
   const hadModifierKeysRef = useRef(false);
+
+  // Real-time listener for live pixel updates across clients (Firebase RTDB)
+  useRealtimePixels();
 
   // Initialize client store & center canvas in viewport on mount
   useEffect(() => {
@@ -226,17 +230,28 @@ export const PixelCanvas: React.FC = () => {
         ctx.stroke();
       }
 
-      // Render Purchased / Custom Pixels (Optimized: Direct iteration over sold pixels)
-      const soldPixels = Object.values(pixels);
-      soldPixels.forEach((pixel) => {
-        if (pixel.status === 'sold' && pixel.x >= minGridX && pixel.x <= maxGridX && pixel.y >= minGridY && pixel.y <= maxGridY) {
-          renderedCount++;
-          ctx.fillStyle = pixel.color || '#8FE3FF';
-          ctx.fillRect(pixel.x * PIXEL_SIZE, pixel.y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+      // Render Purchased & Reserved Pixels
+      const activePixels = Object.values(pixels);
+      activePixels.forEach((pixel) => {
+        if (pixel.x >= minGridX && pixel.x <= maxGridX && pixel.y >= minGridY && pixel.y <= maxGridY) {
+          if (pixel.status === 'sold') {
+            renderedCount++;
+            ctx.fillStyle = pixel.color || '#8FE3FF';
+            ctx.fillRect(pixel.x * PIXEL_SIZE, pixel.y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
 
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-          ctx.lineWidth = 1 / viewport.scale;
-          ctx.strokeRect(pixel.x * PIXEL_SIZE, pixel.y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 1 / viewport.scale;
+            ctx.strokeRect(pixel.x * PIXEL_SIZE, pixel.y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+          } else if (pixel.status === 'reserved') {
+            renderedCount++;
+            // Amber color for reserved pixels being purchased
+            ctx.fillStyle = '#F59E0B';
+            ctx.fillRect(pixel.x * PIXEL_SIZE, pixel.y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+
+            ctx.strokeStyle = '#FBBF24';
+            ctx.lineWidth = 1.5 / viewport.scale;
+            ctx.strokeRect(pixel.x * PIXEL_SIZE, pixel.y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+          }
         }
       });
 
