@@ -26,9 +26,24 @@ export default function AdminPage() {
     );
   }
 
+  const uniqueProfiles = Array.from(
+    new Map(Object.values(profiles).map((p) => [p.id || p.user_id, p])).values()
+  );
+
+  const filteredProfiles = uniqueProfiles.filter((prof) => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      prof.username?.toLowerCase().includes(term) ||
+      prof.name?.toLowerCase().includes(term) ||
+      prof.id?.toLowerCase().includes(term) ||
+      prof.user_id?.toLowerCase().includes(term)
+    );
+  });
+
   const totalPixelsSold = Object.values(pixels).filter((p) => p.status === 'sold').length;
   const totalRevenue = totalPixelsSold * 10;
-  const totalUsers = Object.keys(profiles).length;
+  const totalUsers = uniqueProfiles.length;
 
   const handleRefund = (orderId: string) => {
     alert(`Initiated Razorpay full refund for Order ${orderId}. Pixels marked as available.`);
@@ -128,7 +143,7 @@ export default function AdminPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant">
-                {Object.values(profiles).map((prof) => (
+                {filteredProfiles.map((prof) => (
                   <tr key={prof.id} className="text-white">
                     <td className="py-3 flex items-center gap-2">
                       <img src={prof.avatar} alt={prof.username} className="w-7 h-7 rounded-full object-cover border border-outline" />
