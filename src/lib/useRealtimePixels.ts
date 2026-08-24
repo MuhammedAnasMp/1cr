@@ -21,6 +21,7 @@ export function useRealtimePixels() {
   const listenerRef = useRef<DatabaseReference | null>(null);
 
   useEffect(() => {
+    if (!rtdb) return;
     try {
       const eventsRef = ref(rtdb, '/pixels/events');
       listenerRef.current = eventsRef;
@@ -80,6 +81,7 @@ export function useCanvasStats(onUpdate: (stats: {
   updated_at?: number;
 }) => void) {
   useEffect(() => {
+    if (!rtdb) return;
     try {
       const statsRef = ref(rtdb, '/canvas/stats');
 

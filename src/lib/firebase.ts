@@ -21,7 +21,14 @@ export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
 // Realtime Database — used for live pixel event broadcasting across all clients
-export const rtdb = getDatabase(app);
+export const rtdb = (() => {
+  try {
+    return getDatabase(app);
+  } catch (err) {
+    console.warn("Firebase RTDB init warning:", err);
+    return null;
+  }
+})();
 
 // Analytics disabled to prevent installations API permission warnings (unused in codebase)
 export let analytics: any = null;
