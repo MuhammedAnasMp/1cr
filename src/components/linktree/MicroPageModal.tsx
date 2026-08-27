@@ -22,22 +22,22 @@ export const MicroPageModal: React.FC = () => {
       {/* Close button top right */}
       <div
         onClick={closeProfileModal}
-        className="fixed top-5 right-6 text-3xl font-light text-white cursor-pointer hover:opacity-80 transition-opacity select-none z-50"
+        className="fixed top-5 right-6 text-3xl font-light text-on-surface-variant cursor-pointer hover:text-on-surface transition-colors select-none z-50"
       >
         ×
       </div>
 
       {/* Profile Card Overlay */}
-      <div className="w-[360px] max-w-[calc(100%-30px)] p-8 rounded-modal bg-surface-container/70 backdrop-blur-md border border-outline-variant text-center shadow-[0_30px_100px_rgba(0,0,0,0.7)] text-white relative">
+      <div className="w-[360px] max-w-[calc(100%-30px)] p-8 rounded-modal bg-surface-container/90 backdrop-blur-md border border-outline-variant text-center shadow-xl text-on-surface relative">
         {/* Avatar */}
         <img
           src={activeProfile.avatar}
           alt={activeProfile.username}
-          className="w-[90px] h-[90px] rounded-full object-cover border border-active-cyan mx-auto shadow-lg"
+          className="w-[90px] h-[90px] rounded-full object-cover border border-primary mx-auto shadow-lg"
         />
 
         {/* Username */}
-        <h2 className="text-xl font-bold mt-4 mb-1 text-white tracking-wide">
+        <h2 className="text-xl font-bold mt-4 mb-1 text-on-surface tracking-wide">
           @{activeProfile.username}
         </h2>
 
@@ -54,11 +54,11 @@ export const MicroPageModal: React.FC = () => {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full py-3 px-4 rounded bg-surface-container-highest hover:text-active-cyan border border-outline-variant text-white text-sm font-semibold text-center transition-all duration-200 shadow group"
+              className="block w-full py-3 px-4 rounded bg-surface-container-highest hover:text-primary border border-outline-variant text-on-surface text-sm font-semibold text-center transition-all duration-200 shadow group"
             >
               <div>{link.title}</div>
               {link.assigned_pixels && link.assigned_pixels.length > 0 && (
-                <span className="text-[10px] text-active-cyan/90 group-hover:text-active-cyan font-mono block font-medium mt-0.5">
+                <span className="text-[10px] text-primary/90 group-hover:text-primary font-mono block font-medium mt-0.5">
                   Linked to {link.assigned_pixels.length} Pixel{link.assigned_pixels.length > 1 ? 's' : ''}
                 </span>
               )}

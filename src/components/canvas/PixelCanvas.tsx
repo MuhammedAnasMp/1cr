@@ -2,7 +2,6 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { usePixelStore } from '@/store/usePixelStore';
-import { useRealtimePixels } from '@/lib/useRealtimePixels';
 import { Crosshair } from 'lucide-react';
 
 const PIXEL_SIZE = 16; // Each grid unit is 16px x 16px
@@ -40,8 +39,6 @@ export const PixelCanvas: React.FC = () => {
   const [selectEnd, setSelectEnd] = useState<{ x: number; y: number } | null>(null);
   const hadModifierKeysRef = useRef(false);
 
-  // Real-time listener for live pixel updates across clients (Firebase RTDB)
-  useRealtimePixels();
 
   // Initialize client store & center canvas in viewport on mount
   useEffect(() => {

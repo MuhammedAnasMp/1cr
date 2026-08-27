@@ -31,9 +31,6 @@ interface PixelStore {
   getTopBuyers: () => TopBuyer[];
   fetchPixels: () => Promise<void>;
 
-  // Real-time patch — called by Firebase RTDB listener
-  patchPixel: (data: Partial<Pixel> & { x: number; y: number }) => void;
-
   // Selection
   selectedCoords: Set<string>; // "x,y"
   selectionHistory: Set<string>[];
@@ -166,40 +163,6 @@ export const usePixelStore = create<PixelStore>((set, get) => ({
   // Production Pixels Map with LocalStorage Backup
   pixels: {},
   getPixel: (x: number, y: number) => get().pixels[`${x},${y}`],
-
-  // Real-time patch: called by Firebase RTDB onValue listener
-  patchPixel: (data) => {
-    const key = `${data.x},${data.y}`;
-    set((state) => {
-      const existing = state.pixels[key];
-      // If the event says 'available' (released reservation), remove from map
-      if (data.status === 'available') {
-        const next = { ...state.pixels };
-        if (next[key] && next[key].status === 'reserved') {
-          delete next[key];
-        }
-        return { pixels: next };
-      }
-      return {
-        pixels: {
-          ...state.pixels,
-          [key]: {
-            id: data.id ?? existing?.id ?? 0,
-            x: data.x,
-            y: data.y,
-            price: data.price ?? existing?.price ?? 10,
-            status: data.status ?? existing?.status ?? 'available',
-            color: data.color ?? existing?.color,
-            owner_id: data.owner_id ?? existing?.owner_id,
-            owner_name: data.owner_name ?? existing?.owner_name,
-            owner_avatar: data.owner_avatar ?? existing?.owner_avatar,
-            profile_id: data.profile_id ?? existing?.profile_id,
-            created_at: existing?.created_at,
-          },
-        },
-      };
-    });
-  },
 
   fetchPixels: async () => {
     try {
@@ -446,7 +409,7 @@ export const usePixelStore = create<PixelStore>((set, get) => ({
     });
     set({ isCheckoutOpen: false, pixels: revertedPixels });
 
-    // Release server-side reservations (DB + RTDB) — fire and forget
+    // Release server-side reservations in DB — fire and forget
     fetch('/api/pixels/reserve', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },

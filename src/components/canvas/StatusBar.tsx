@@ -25,13 +25,13 @@ export const StatusBar: React.FC = () => {
   if (selectedCount === 0) return null;
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-[#141417]/95 border border-active-cyan/40 rounded-full px-4 py-2.5 shadow-[0_10px_40px_rgba(0,229,255,0.25)] backdrop-blur-xl flex items-center gap-2.5 animate-in fade-in slide-in-from-bottom-4 duration-200 select-none">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-surface-container/95 border border-primary/40 rounded-full px-4 py-2.5 shadow-[0_10px_40px_rgba(70,72,212,0.25)] backdrop-blur-xl flex items-center gap-2.5 animate-in fade-in slide-in-from-bottom-4 duration-200 select-none">
       {/* Primary Checkout Action Button */}
       <button
         onClick={openCheckoutModal}
-        className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-neutral-200 text-black font-extrabold text-xs uppercase tracking-wider rounded-full transition-all shadow-lg hover:scale-105 active:scale-95"
+        className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-container text-on-primary font-extrabold text-xs uppercase tracking-wider rounded-full transition-all shadow-lg hover:scale-105 active:scale-95"
       >
-        <ShoppingBag className="w-4 h-4 text-black" />
+        <ShoppingBag className="w-4 h-4 text-on-primary" />
         <span>Checkout & Claim (₹{totalPrice})</span>
       </button>
 
@@ -39,7 +39,7 @@ export const StatusBar: React.FC = () => {
       <button
         onClick={undoSelection}
         disabled={!canUndo}
-        className="p-2 bg-[#222228] hover:bg-[#2e2e36] text-neutral-300 hover:text-white font-bold text-xs rounded-full transition-all border border-[#383842] disabled:opacity-30 disabled:pointer-events-none"
+        className="p-2 bg-surface-container-highest hover:bg-surface-bright text-on-surface-variant hover:text-on-surface font-bold text-xs rounded-full transition-all border border-outline-variant disabled:opacity-30 disabled:pointer-events-none"
         title="Undo Selection (Ctrl+Z / Cmd+Z)"
       >
         <RotateCcw className="w-3.5 h-3.5" />
@@ -49,7 +49,7 @@ export const StatusBar: React.FC = () => {
       <button
         onClick={redoSelection}
         disabled={!canRedo}
-        className="p-2 bg-[#222228] hover:bg-[#2e2e36] text-neutral-300 hover:text-white font-bold text-xs rounded-full transition-all border border-[#383842] disabled:opacity-30 disabled:pointer-events-none"
+        className="p-2 bg-surface-container-highest hover:bg-surface-bright text-on-surface-variant hover:text-on-surface font-bold text-xs rounded-full transition-all border border-outline-variant disabled:opacity-30 disabled:pointer-events-none"
         title="Redo Selection (Ctrl+Shift+Z / Cmd+Shift+Z)"
       >
         <RotateCw className="w-3.5 h-3.5" />
@@ -58,10 +58,10 @@ export const StatusBar: React.FC = () => {
       {/* Clear Selection Button with Pixel Count */}
       <button
         onClick={clearSelection}
-        className="flex items-center gap-1.5 px-3 py-2 bg-[#222228] hover:bg-[#2e2e36] text-neutral-300 hover:text-white font-bold text-xs rounded-full transition-all border border-[#383842]"
+        className="flex items-center gap-1.5 px-3 py-2 bg-surface-container-highest hover:bg-surface-bright text-on-surface-variant hover:text-on-surface font-bold text-xs rounded-full transition-all border border-outline-variant"
         title="Clear Selection"
       >
-        <X className="w-3.5 h-3.5 text-neutral-400" />
+        <X className="w-3.5 h-3.5 text-on-surface-variant" />
         <span>Clear ({selectedCount})</span>
       </button>
     </div>

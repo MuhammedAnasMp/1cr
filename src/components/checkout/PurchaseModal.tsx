@@ -230,26 +230,26 @@ export const PurchaseModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-4 md:p-6">
-      <div className="bg-[#121212] border border-[#262626] rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-200 my-auto flex flex-col max-h-[92vh] sm:max-h-[88vh]">
+    <div className="fixed inset-0 z-50 bg-black/65 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-4 md:p-6">
+      <div className="bg-surface-container border border-outline-variant rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-200 my-auto flex flex-col max-h-[92vh] sm:max-h-[88vh]">
         
         {/* Top Accent Gradient Line */}
-        <div className="h-0.5 w-full bg-gradient-to-r from-transparent via-active-cyan to-transparent shrink-0"></div>
+        <div className="h-0.5 w-full bg-gradient-to-r from-transparent via-primary to-transparent shrink-0"></div>
 
         {/* Modal Header */}
-        <div className="px-4 sm:px-6 py-3.5 sm:py-4.5 border-b border-[#262626] flex items-center justify-between bg-[#161616] shrink-0">
+        <div className="px-4 sm:px-6 py-3.5 sm:py-4.5 border-b border-outline-variant flex items-center justify-between bg-surface-container-low shrink-0">
           <div className="flex items-center gap-2.5 sm:gap-3">
-            <div className="p-2 rounded-xl bg-[#1e1e1e] border border-[#333] text-active-cyan shadow-sm">
+            <div className="p-2 rounded-xl bg-surface-container-lowest border border-outline-variant text-primary shadow-sm">
               <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-extrabold text-white tracking-wide">Acquire Land Assets</h3>
-              <p className="text-[10px] sm:text-xs text-neutral-400 font-medium">Configure display metadata & destination links</p>
+              <h3 className="text-sm sm:text-base font-extrabold text-on-surface tracking-wide">Acquire Land Assets</h3>
+              <p className="text-[10px] sm:text-xs text-on-surface-variant font-medium">Configure display metadata & destination links</p>
             </div>
           </div>
           <button 
             onClick={closeCheckoutModal} 
-            className="p-1.5 sm:p-2 text-neutral-400 hover:text-white transition-colors rounded-full hover:bg-[#222]"
+            className="p-1.5 sm:p-2 text-on-surface-variant hover:text-on-surface transition-colors rounded-full hover:bg-surface-container-high"
             title="Close"
           >
             <X className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -259,19 +259,19 @@ export const PurchaseModal: React.FC = () => {
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto custom-scrollbar flex-1">
           
           {/* Order Summary & Investment Breakdown */}
-          <div className="bg-[#181818] border border-[#282828] rounded-xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 shadow-inner">
+          <div className="bg-surface-container-high border border-outline-variant rounded-xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 shadow-inner">
             <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-xs text-neutral-400 font-semibold uppercase tracking-wider">
-                <Layers className="w-3.5 h-3.5 text-active-cyan" />
+              <div className="flex items-center gap-1.5 text-xs text-on-surface-variant font-semibold uppercase tracking-wider">
+                <Layers className="w-3.5 h-3.5 text-primary" />
                 <span>Selected Land</span>
               </div>
-              <span className="text-base sm:text-lg font-black text-white block">{selectedCount} Pixel{selectedCount > 1 ? 's' : ''}</span>
-              <span className="text-[11px] text-active-cyan font-mono block">Rate: ₹10.00 / pixel</span>
+              <span className="text-base sm:text-lg font-black text-on-surface block">{selectedCount} Pixel{selectedCount > 1 ? 's' : ''}</span>
+              <span className="text-[11px] text-primary font-mono block">Rate: ₹10.00 / pixel</span>
             </div>
 
-            <div className="text-left sm:text-right border-t sm:border-t-0 sm:border-l border-[#2d2d2d] pt-2.5 sm:pt-0 sm:pl-6">
-              <span className="text-[10px] sm:text-xs text-neutral-400 font-semibold uppercase tracking-wider block">Total Payable Cost</span>
-              <span className="text-xl sm:text-2xl font-black text-white tracking-tight">₹{totalPrice}</span>
+            <div className="text-left sm:text-right border-t sm:border-t-0 sm:border-l border-outline-variant pt-2.5 sm:pt-0 sm:pl-6">
+              <span className="text-[10px] sm:text-xs text-on-surface-variant font-semibold uppercase tracking-wider block">Total Payable Cost</span>
+              <span className="text-xl sm:text-2xl font-black text-on-surface tracking-tight">₹{totalPrice}</span>
             </div>
           </div>
 
@@ -285,22 +285,22 @@ export const PurchaseModal: React.FC = () => {
 
           {/* Selected Pixel Numbers Chip Grid (1 - 10,000,000) */}
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs text-neutral-400 font-bold uppercase tracking-wider">
+            <div className="flex items-center justify-between text-xs text-on-surface-variant font-bold uppercase tracking-wider">
               <span>Acquired Pixel Numbers (1 - 10,000,000)</span>
-              <span className="font-mono text-active-cyan text-[11px] sm:text-xs">{selectedCount} Total</span>
+              <span className="font-mono text-primary text-[11px] sm:text-xs">{selectedCount} Total</span>
             </div>
-            <div className="bg-[#161616] border border-[#262626] rounded-xl p-2.5 sm:p-3 max-h-24 overflow-y-auto flex flex-wrap gap-1.5 text-[11px] sm:text-xs font-mono">
+            <div className="bg-surface-container-low border border-outline-variant rounded-xl p-2.5 sm:p-3 max-h-24 overflow-y-auto flex flex-wrap gap-1.5 text-[11px] sm:text-xs font-mono">
               {coords.slice(0, 30).map((c) => {
                 const [x, y] = c.split(',').map(Number);
                 const pixelId = y * 4000 + x + 1;
                 return (
-                  <span key={c} className="bg-[#222] px-2 py-0.5 rounded-md border border-[#333] text-white font-medium">
+                  <span key={c} className="bg-surface-container-lowest px-2 py-0.5 rounded-md border border-outline-variant text-on-surface font-medium">
                     #{pixelId.toLocaleString()}
                   </span>
                 );
               })}
               {selectedCount > 30 && (
-                <span className="self-center px-1.5 text-active-cyan font-semibold text-[11px]">
+                <span className="self-center px-1.5 text-primary font-semibold text-[11px]">
                   + {selectedCount - 30} more
                 </span>
               )}
@@ -308,10 +308,10 @@ export const PurchaseModal: React.FC = () => {
           </div>
 
           {/* Profile & Linktree Form */}
-          <div className="space-y-4 pt-3 border-t border-[#262626]">
+          <div className="space-y-4 pt-3 border-t border-outline-variant">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-active-cyan" />
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <h4 className="text-xs font-bold text-on-surface uppercase tracking-wider">
                 Public Linktree & Profile Setup
               </h4>
             </div>
@@ -320,8 +320,8 @@ export const PurchaseModal: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
               {/* Display Name Input */}
               <div className="space-y-1.5">
-                <label className="text-xs text-neutral-300 font-medium flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-neutral-400" />
+                <label className="text-xs text-on-surface-variant font-medium flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-on-surface-variant" />
                   <span>Display Name</span>
                 </label>
                 <input
@@ -329,18 +329,18 @@ export const PurchaseModal: React.FC = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g., Acquirer / Brand Name"
-                  className="w-full bg-[#161616] border border-[#2a2a2a] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-active-cyan focus:ring-1 focus:ring-active-cyan/40 transition-all placeholder:text-neutral-600"
+                  className="w-full bg-surface-container-low border border-outline-variant rounded-xl px-3.5 py-2.5 text-xs text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/40 transition-all placeholder:text-on-surface-variant/40"
                 />
               </div>
 
               {/* Username Slug Input */}
               <div className="space-y-1.5">
-                <label className="text-xs text-neutral-300 font-medium flex items-center gap-1.5">
-                  <AtSign className="w-3.5 h-3.5 text-neutral-400" />
+                <label className="text-xs text-on-surface-variant font-medium flex items-center gap-1.5">
+                  <AtSign className="w-3.5 h-3.5 text-on-surface-variant" />
                   <span>Username Handle (URL Slug)</span>
                 </label>
                 <div className="flex items-center">
-                  <span className="bg-[#1e1e1e] border border-r-0 border-[#2a2a2a] rounded-l-xl px-3 py-2.5 text-[11px] sm:text-xs text-neutral-400 font-mono shrink-0">
+                  <span className="bg-surface-container-lowest border border-r-0 border-outline-variant rounded-l-xl px-3 py-2.5 text-[11px] sm:text-xs text-on-surface-variant font-mono shrink-0">
                     /@
                   </span>
                   <input
@@ -348,7 +348,7 @@ export const PurchaseModal: React.FC = () => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="handle"
-                    className="w-full min-w-0 bg-[#161616] border border-[#2a2a2a] rounded-r-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-active-cyan focus:ring-1 focus:ring-active-cyan/40 transition-all font-mono placeholder:text-neutral-600"
+                    className="w-full min-w-0 bg-surface-container-low border border-outline-variant rounded-r-xl px-3 py-2.5 text-xs text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/40 transition-all font-mono placeholder:text-on-surface-variant/40"
                   />
                 </div>
               </div>
@@ -357,8 +357,8 @@ export const PurchaseModal: React.FC = () => {
             {/* Linktree Multiple Destination URLs with Pixel Grouping */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-xs text-neutral-300 font-medium flex items-center gap-1.5">
-                  <Globe className="w-3.5 h-3.5 text-neutral-400" />
+                <label className="text-xs text-on-surface-variant font-medium flex items-center gap-1.5">
+                  <Globe className="w-3.5 h-3.5 text-on-surface-variant" />
                   <span>Destination URLs & Pixel Groupings</span>
                 </label>
                 <div className="flex items-center gap-2">
@@ -366,17 +366,17 @@ export const PurchaseModal: React.FC = () => {
                     <button
                       type="button"
                       onClick={autoSplitPixelsEqually}
-                      className="text-xs text-neutral-400 hover:text-white font-semibold flex items-center gap-1 transition-colors bg-[#1e1e1e] px-2 py-1 rounded border border-[#333]"
+                      className="text-xs text-on-surface-variant hover:text-on-surface font-semibold flex items-center gap-1 transition-colors bg-surface-container-lowest px-2 py-1 rounded border border-outline-variant"
                       title="Split acquired pixels equally between links"
                     >
-                      <Split className="w-3 h-3 text-active-cyan" />
+                      <Split className="w-3 h-3 text-primary" />
                       <span>Split Equally</span>
                     </button>
                   )}
                   <button
                     type="button"
                     onClick={addLink}
-                    className="text-xs text-active-cyan hover:text-cyan-300 font-bold flex items-center gap-1 transition-colors"
+                    className="text-xs text-primary hover:text-primary-container font-bold flex items-center gap-1 transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add URL</span>
@@ -388,13 +388,13 @@ export const PurchaseModal: React.FC = () => {
                 {checkoutLinks.map((link, idx) => {
                   const assignedCount = (link.assignedPixels || coords).length;
                   return (
-                    <div key={idx} className="bg-[#161616] p-3 sm:p-3.5 rounded-xl border border-[#2a2a2a] space-y-2.5 relative group">
-                      <div className="flex items-center justify-between border-b border-[#222] pb-1.5">
+                    <div key={idx} className="bg-surface-container-low p-3 sm:p-3.5 rounded-xl border border-outline-variant space-y-2.5 relative group">
+                      <div className="flex items-center justify-between border-b border-outline-variant pb-1.5">
                         <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-mono text-neutral-400 font-bold uppercase tracking-wider">
+                          <span className="text-[11px] font-mono text-on-surface-variant font-bold uppercase tracking-wider">
                             Destination #{idx + 1}
                           </span>
-                          <span className="text-[10px] bg-active-cyan/15 text-active-cyan border border-active-cyan/30 px-2 py-0.2 rounded font-mono font-semibold">
+                          <span className="text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.2 rounded font-mono font-semibold">
                             {assignedCount} / {coords.length} Pixels
                           </span>
                         </div>
@@ -402,7 +402,7 @@ export const PurchaseModal: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => removeLink(idx)}
-                            className="text-neutral-500 hover:text-red-400 transition-colors p-1"
+                            className="text-on-surface-variant hover:text-error transition-colors p-1"
                             title="Remove Destination"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -417,7 +417,7 @@ export const PurchaseModal: React.FC = () => {
                           value={link.title}
                           onChange={(e) => updateLink(idx, 'title', e.target.value)}
                           placeholder="Button Title (e.g., Visit Website)"
-                          className="w-full bg-[#1f1f1f] border border-[#2c2c2c] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-active-cyan transition-all placeholder:text-neutral-600"
+                          className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 text-xs text-on-surface focus:outline-none focus:border-primary transition-all placeholder:text-on-surface-variant/40"
                         />
                         <input
                           type="text"
@@ -425,29 +425,29 @@ export const PurchaseModal: React.FC = () => {
                           value={link.url}
                           onChange={(e) => updateLink(idx, 'url', e.target.value)}
                           placeholder="URL (https://...)"
-                          className="w-full bg-[#1f1f1f] border border-[#2c2c2c] rounded-lg px-3 py-2 text-xs text-neutral-300 focus:outline-none focus:border-active-cyan transition-all font-mono placeholder:text-neutral-600"
+                          className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 text-xs text-on-surface focus:outline-none focus:border-primary transition-all font-mono placeholder:text-on-surface-variant/40"
                         />
                       </div>
 
                       {/* Pixel Grouping Sub-Selector */}
-                      <div className="pt-2 border-t border-[#222] space-y-1.5">
+                      <div className="pt-2 border-t border-outline-variant space-y-1.5">
                         <div className="flex items-center justify-between text-[11px]">
-                          <span className="text-neutral-400 font-medium flex items-center gap-1">
-                            <Grid className="w-3 h-3 text-active-cyan" />
+                          <span className="text-on-surface-variant font-medium flex items-center gap-1">
+                            <Grid className="w-3 h-3 text-primary" />
                             <span>Assigned Pixel Group ({assignedCount} pixels)</span>
                           </span>
                           <div className="flex items-center gap-2">
                             <button
                               type="button"
                               onClick={() => assignAllPixelsToLink(idx)}
-                              className="text-[10px] text-neutral-400 hover:text-white underline"
+                              className="text-[10px] text-on-surface-variant hover:text-on-surface underline"
                             >
                               Assign All
                             </button>
                             <button
                               type="button"
                               onClick={() => setOpenGroupSelector(openGroupSelector === idx ? null : idx)}
-                              className="text-[10px] text-active-cyan font-bold hover:underline"
+                              className="text-[10px] text-primary font-bold hover:underline"
                             >
                               {openGroupSelector === idx ? 'Close Grouping' : 'Custom Pixel Grouping'}
                             </button>
@@ -455,8 +455,8 @@ export const PurchaseModal: React.FC = () => {
                         </div>
 
                         {openGroupSelector === idx && (
-                          <div className="bg-[#1f1f1f] border border-[#2c2c2c] rounded-lg p-2.5 max-h-32 overflow-y-auto space-y-1.5 animate-in fade-in duration-150">
-                            <span className="text-[10px] text-neutral-400 block font-mono">
+                          <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-2.5 max-h-32 overflow-y-auto space-y-1.5 animate-in fade-in duration-150">
+                            <span className="text-[10px] text-on-surface-variant block font-mono">
                               Click pixel numbers to include/exclude from Destination #{idx + 1}:
                             </span>
                             <div className="flex flex-wrap gap-1">
@@ -471,8 +471,8 @@ export const PurchaseModal: React.FC = () => {
                                     onClick={() => togglePixelInLink(idx, c)}
                                     className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition-all border ${
                                       isAssigned
-                                        ? 'bg-active-cyan/20 border-active-cyan text-active-cyan font-bold shadow-sm'
-                                        : 'bg-[#181818] border-[#333] text-neutral-500 hover:text-neutral-300'
+                                        ? 'bg-primary/20 border-primary text-primary font-bold shadow-sm'
+                                        : 'bg-surface-container-low border-outline-variant text-on-surface-variant hover:text-on-surface'
                                     }`}
                                   >
                                     #{pixelId.toLocaleString()} {isAssigned ? '✓' : ''}
@@ -493,13 +493,13 @@ export const PurchaseModal: React.FC = () => {
           </div>
 
           {/* Security Guarantee Badge */}
-          <div className="bg-[#161616] p-3 sm:p-3.5 rounded-xl border border-[#262626] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 text-xs text-neutral-400">
+          <div className="bg-surface-container-low p-3 sm:p-3.5 rounded-xl border border-outline-variant flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 text-xs text-on-surface-variant">
             <div className="flex items-center gap-2.5">
-              <ShieldCheck className="w-4 h-4 text-active-cyan shrink-0" />
+              <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
               <span className="font-medium text-[11px] sm:text-xs">256-bit Encrypted Checkout Gateway</span>
             </div>
-            <div className="flex items-center gap-1 text-[10px] font-mono text-white bg-[#222] px-2 py-0.5 rounded border border-[#333] shrink-0">
-              <Lock className="w-3 h-3 text-active-cyan" />
+            <div className="flex items-center gap-1 text-[10px] font-mono text-on-surface bg-surface-container-lowest px-2 py-0.5 rounded border border-outline-variant shrink-0">
+              <Lock className="w-3 h-3 text-primary" />
               <span>Razorpay Verified</span>
             </div>
           </div>
@@ -508,9 +508,9 @@ export const PurchaseModal: React.FC = () => {
           <button
             onClick={handleRazorpayPayment}
             disabled={isProcessing}
-            className="w-full py-3.5 bg-white hover:bg-neutral-200 text-black font-extrabold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-all shadow-xl disabled:opacity-50 hover:scale-[1.01] active:scale-[0.99]"
+            className="w-full py-3.5 bg-primary hover:bg-primary-container text-on-primary font-extrabold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-all shadow-xl disabled:opacity-50 hover:scale-[1.01] active:scale-[0.99]"
           >
-            <CreditCard className="w-4 h-4" />
+            <CreditCard className="w-4 h-4 text-on-primary" />
             {isProcessing ? 'Connecting Gateway...' : `Proceed to Pay ₹${totalPrice}`}
           </button>
 

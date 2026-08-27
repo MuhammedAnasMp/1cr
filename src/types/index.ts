@@ -83,3 +83,69 @@ export interface SelectionArea {
   endX: number;
   endY: number;
 }
+
+export interface Block {
+  id: string;
+  grid_x: number;
+  grid_y: number;
+  country_code: string;
+  owner_id?: string;
+  owner_name?: string;
+  owner_avatar?: string;
+  owner_username?: string;
+  price: number;
+  status: PixelStatus;
+  image_url?: string;
+  config?: {
+    bio?: string;
+    theme_color?: string;
+    headline?: string;
+  };
+  links?: any[];
+  images?: any[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Country {
+  code: string;
+  name: string;
+  flag: string;
+  bounding_box: {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+  };
+  total_blocks: number;
+  sold_blocks: number;
+}
+
+export interface PricingTier {
+  id: string;
+  min_blocks: number;
+  max_blocks: number | null;
+  discount_percent: number;
+  price_per_block: number;
+  is_active: boolean;
+}
+
+export interface CurrencyConfig {
+  code: string;
+  symbol: string;
+  name: string;
+  rateFromINR: number;
+}
+
+export interface CanvasPulseEvent {
+  type: string;
+  block_ids: string[];
+  owner_name: string;
+  country_code: string;
+  timestamp: number;
+}
+
+export interface RealtimePresence {
+  viewer_count: number;
+  active_sessions: number;
+}

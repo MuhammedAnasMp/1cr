@@ -18,8 +18,8 @@ export const TopBuyersLeaderboard: React.FC = () => {
         className="w-full px-3.5 py-2.5 bg-surface-container-low hover:bg-surface-container-high flex items-center justify-between border-b border-outline-variant transition-colors"
       >
         <div className="flex items-center gap-2">
-          <Trophy className="w-4 h-4 text-active-cyan" />
-          <span className="text-xs font-extrabold text-white tracking-wide">Top 5 Pixel Owners</span>
+          <Trophy className="w-4 h-4 text-primary" />
+          <span className="text-xs font-extrabold text-on-surface tracking-wide">Top 5 Pixel Owners</span>
         </div>
         {isOpen ? (
           <ChevronUp className="w-3.5 h-3.5 text-on-surface-variant" />
@@ -36,7 +36,7 @@ export const TopBuyersLeaderboard: React.FC = () => {
               <p className="text-xs text-on-surface-variant">No pixel buyers yet in the database.</p>
               <button
                 onClick={() => jump(500, 200)}
-                className="w-full py-1.5 bg-white hover:bg-neutral-200 text-background font-bold text-xs rounded flex items-center justify-center gap-1.5 transition-colors"
+                className="w-full py-1.5 bg-primary hover:bg-primary-container text-on-primary font-bold text-xs rounded flex items-center justify-center gap-1.5 transition-colors"
               >
                 <Sparkles className="w-3.5 h-3.5" /> Be the First Buyer!
               </button>
@@ -60,11 +60,11 @@ export const TopBuyersLeaderboard: React.FC = () => {
                   <span
                     className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
                       idx === 0
-                        ? 'bg-active-lavender text-background'
+                        ? 'bg-active-lavender text-on-surface'
                         : idx === 1
-                        ? 'bg-active-cyan text-background'
+                        ? 'bg-active-cyan text-on-surface'
                         : idx === 2
-                        ? 'bg-active-silver text-background'
+                        ? 'bg-active-silver text-on-surface'
                         : 'bg-surface-container-highest text-on-surface-variant'
                     }`}
                   >
@@ -79,17 +79,17 @@ export const TopBuyersLeaderboard: React.FC = () => {
                   />
 
                   {/* Name */}
-                  <span className="text-xs font-semibold text-white truncate group-hover:text-active-cyan transition-colors">
+                  <span className="text-xs font-semibold text-on-surface truncate group-hover:text-primary transition-colors">
                     {buyer.name}
                   </span>
                 </div>
 
                 {/* Pixel Count Pill */}
                 <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-[11px] font-extrabold text-active-cyan font-mono">
+                  <span className="text-[11px] font-extrabold text-primary font-mono">
                     {buyer.pixelCount} px
                   </span>
-                  <ExternalLink className="w-3 h-3 text-on-surface-variant group-hover:text-active-cyan transition-colors" />
+                  <ExternalLink className="w-3 h-3 text-on-surface-variant group-hover:text-primary transition-colors" />
                 </div>
               </div>
             ))

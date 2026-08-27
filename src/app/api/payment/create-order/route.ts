@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { generateRazorpayOrder } from '@/lib/razorpay';
 import { initPostgres, pool } from '@/lib/db';
-import { broadcastPixelEvent, updateCanvasStats } from '@/lib/firebaseAdmin';
 
 const RESERVATION_MINUTES = 10;
 
@@ -17,7 +16,7 @@ export async function POST(request: Request) {
     const orderId = `ord_${Date.now()}`;
     const order = generateRazorpayOrder(amount, orderId);
 
-    // ── Reserve pixels in DB + Firebase RTDB if coords provided ─────────────
+    // ── Reserve pixels in DB if coords provided ─────────────────────────────
     let reservationResult: { conflict?: boolean; taken?: string[]; success?: boolean } = {};
 
     if (coords && coords.length > 0 && session_id) {
@@ -70,20 +69,6 @@ export async function POST(request: Request) {
         await client.query('COMMIT');
         client.release();
 
-        // Broadcast to all RTDB clients
-        const expiresAt = new Date(Date.now() + RESERVATION_MINUTES * 60 * 1000).toISOString();
-        await Promise.all(
-          pixelRows.map((row) =>
-            broadcastPixelEvent(row.pixelId, {
-              status: 'reserved',
-              x: row.x,
-              y: row.y,
-              session_id,
-              expires_at: expiresAt,
-            })
-          )
-        );
-        await updateCanvasStats({ reserved: pixelRows.length });
         reservationResult = { success: true };
       } catch (err) {
         await client.query('ROLLBACK').catch(() => {});

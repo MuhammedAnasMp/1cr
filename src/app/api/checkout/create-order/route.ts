@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { initPostgres, pool } from '@/lib/db';
 import { generateRazorpayOrder } from '@/lib/razorpay';
-import { calculateBlockPrice, getPricingConfiguration } from '@/lib/pricing';
+import { calculateBlockPrice } from '@/lib/pricing';
+import { getPricingConfiguration } from '@/lib/pricingServer';
 
 export async function POST(request: Request) {
   try {

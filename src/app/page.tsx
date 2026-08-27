@@ -1,67 +1,91 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
-import { PixelCanvas } from '@/components/canvas/PixelCanvas';
-import { FloatingControls } from '@/components/canvas/FloatingControls';
-import { MiniMap } from '@/components/canvas/MiniMap';
-import { StatusBar } from '@/components/canvas/StatusBar';
-import { TopBuyersLeaderboard } from '@/components/canvas/TopBuyersLeaderboard';
-import { MicroPageModal } from '@/components/linktree/MicroPageModal';
-import { PurchaseModal } from '@/components/checkout/PurchaseModal';
-import { usePixelStore } from '@/store/usePixelStore';
+import { WorldMapView } from '@/components/canvas/WorldMapView';
+import { VirtualizedGridView } from '@/components/canvas/VirtualizedGridView';
+import { BlockSelectionHUD } from '@/components/canvas/BlockSelectionHUD';
+import { BlockModal } from '@/components/linktree/BlockModal';
+import { BlockPurchaseModal } from '@/components/checkout/BlockPurchaseModal';
+import { useBlockStore } from '@/store/useBlockStore';
+import { usePartyKitRealtime } from '@/lib/partykit';
 
 export default function HomePage() {
-  const [showMiniMap, setShowMiniMap] = useState(true);
-  const { fetchPixels } = usePixelStore();
+  const {
+    viewMode,
+    initializeClientStore,
+    setPresence,
+    addPulse,
+    patchBlock,
+  } = useBlockStore();
 
+  // 1. Initialize client store (pricing, countries, blocks)
   useEffect(() => {
-    fetchPixels();
-  }, [fetchPixels]);
+    initializeClientStore();
+  }, [initializeClientStore]);
+
+  // 2. Wire PartyKit Realtime Sync (Presence, Pulses, Reservations)
+  usePartyKitRealtime({
+    onPresenceUpdate: (pres) => {
+      setPresence(pres);
+    },
+    onPulse: (pulse) => {
+      addPulse(pulse);
+      // If purchase pulse, fetch latest blocks or patch
+      if (pulse.block_ids && pulse.block_ids.length > 0) {
+        pulse.block_ids.forEach((id) => {
+          const coords = id.replace('b_', '').split('_');
+          if (coords.length === 2) {
+            patchBlock({
+              id,
+              grid_x: parseInt(coords[0], 10),
+              grid_y: parseInt(coords[1], 10),
+              owner_name: pulse.owner_name,
+              status: 'sold',
+            });
+          }
+        });
+      }
+    },
+    onReservationChange: (data) => {
+      if (data.block_ids) {
+        data.block_ids.forEach((id) => {
+          const coords = id.replace('b_', '').split('_');
+          if (coords.length === 2) {
+            patchBlock({
+              id,
+              grid_x: parseInt(coords[0], 10),
+              grid_y: parseInt(coords[1], 10),
+              status: data.status === 'reserved' ? 'reserved' : 'available',
+            });
+          }
+        });
+      }
+    },
+  });
 
   return (
     <div className="min-h-screen bg-background text-on-background flex flex-col font-sans overflow-hidden">
-      {/* Top Navbar */}
+      {/* Top Navbar with View Switcher, Live Presence & Auth */}
       <Navbar />
 
-      {/* Main Interactive Canvas Area */}
+      {/* Main Interactive Canvas Area (Pure View/Layout Switch) */}
       <main className="relative flex-1 w-full h-[calc(100vh-53px)] overflow-hidden">
-        {/* Left Side Floating Overlay Stack */}
-        <div className="absolute top-4 left-4 z-20 flex flex-col gap-3 max-w-xs sm:max-w-sm pointer-events-none">
-          {/* Hero Banner Header Overlay */}
-          {/* <div className="bg-surface-container/90 backdrop-blur-md border border-outline-variant rounded-card p-3.5 shadow-2xl pointer-events-auto">
-            <h1 className="text-sm font-extrabold text-white tracking-tight mb-0.5">
-              Own Your Place On The Internet
-            </h1>
-            <p className="text-xs text-on-surface-variant mb-2">
-              Buy pixels. Build your identity. Share your links.
-            </p>
-            <div className="flex items-center gap-2 text-[10px]">
-              <span className="px-2 py-0.5 rounded bg-active-cyan/15 text-active-cyan font-bold">₹10 / Pixel</span>
-              <span className="text-on-surface-variant">• Drag or Shift-select pixels</span>
-            </div>
-          </div> */}
+        {viewMode === 'map' ? (
+          <WorldMapView />
+        ) : (
+          <VirtualizedGridView />
+        )}
 
-          {/* Top 1-5 Pixel Owners Leaderboard */}
-          <TopBuyersLeaderboard />
-        </div>
-
-        {/* 60 FPS HTML5 Canvas Engine */}
-        <PixelCanvas />
-
-        {/* Floating Controls HUD */}
-        <FloatingControls showMiniMap={showMiniMap} setShowMiniMap={setShowMiniMap} />
-
-        {/* Interactive MiniMap Radar */}
-        {showMiniMap && <MiniMap />}
+        {/* Floating Multi-Block Selection & Volume Pricing HUD */}
+        <BlockSelectionHUD />
       </main>
 
-      {/* Bottom Status Bar */}
-      <StatusBar />
+      {/* Interactive Linktree Profile & Socials Modal */}
+      <BlockModal />
 
-      {/* Modals */}
-      <MicroPageModal />
-      <PurchaseModal />
+      {/* Multi-Currency Sovereign Block Checkout Modal */}
+      <BlockPurchaseModal />
     </div>
   );
 }

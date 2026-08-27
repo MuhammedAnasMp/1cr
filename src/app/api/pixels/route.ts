@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { initPostgres, pool } from '@/lib/db';
 import { generateInitialPixels } from '@/lib/demoData';
-import { broadcastPixelEvent, releasePixelEvents, updateCanvasStats } from '@/lib/firebaseAdmin';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -186,36 +185,12 @@ export async function POST(request: Request) {
 
       await client.query('COMMIT');
 
-      // ── After successful DB commit: broadcast sold events to Firebase RTDB ──
-      // This updates all connected clients' canvases in real time (<200ms)
       const soldPixelIds = pixels.map((px: any) => Number(px.id));
-
-      // Fire-and-forget RTDB broadcasts (non-blocking, non-critical)
-      Promise.all(
-        pixels.map((px: any) =>
-          broadcastPixelEvent(Number(px.id), {
-            status: 'sold',
-            x: px.x,
-            y: px.y,
-            owner_id: px.owner_id,
-            owner_name: px.owner_name,
-            owner_avatar: px.owner_avatar,
-            color: px.color || '#00e5ff',
-            profile_id: px.profile_id,
-          })
-        )
-      ).catch((e) => console.warn('RTDB broadcast partial failure:', e));
 
       // Clean up reservations for these pixels in DB (if any)
       pool
         .query(`DELETE FROM pixel_reservations WHERE pixel_id = ANY($1)`, [soldPixelIds])
         .catch((e) => console.warn('Reservation cleanup error (non-critical):', e));
-
-      // Release RTDB reservation nodes
-      releasePixelEvents(soldPixelIds).catch(() => {});
-
-      // Update canvas stats
-      updateCanvasStats({ sold: pixels.length, reserved: -pixels.length }).catch(() => {});
     } catch (err) {
       await client.query('ROLLBACK');
       throw err;

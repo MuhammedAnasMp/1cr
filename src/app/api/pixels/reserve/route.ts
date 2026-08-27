@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
 import { initPostgres, pool } from '@/lib/db';
-import { broadcastPixelEvent, releasePixelEvents, updateCanvasStats } from '@/lib/firebaseAdmin';
 
 const RESERVATION_MINUTES = 10;
 
 // ─── POST /api/pixels/reserve ─────────────────────────────────────────────────
 // Called when user clicks "Proceed to Pay" — before Razorpay modal opens.
-// Reserves pixels in DB with a 10-minute TTL and broadcasts status to all clients.
+// Reserves pixels in DB with a 10-minute TTL.
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -69,23 +68,7 @@ export async function POST(request: Request) {
       }
       await client.query('COMMIT');
 
-      // ── 4. Broadcast 'reserved' events to Firebase RTDB (all clients update) ─
       const expiresAt = new Date(Date.now() + RESERVATION_MINUTES * 60 * 1000).toISOString();
-      await Promise.all(
-        pixelRows.map((row) =>
-          broadcastPixelEvent(row.pixelId, {
-            status: 'reserved',
-            x: row.x,
-            y: row.y,
-            session_id,
-            expires_at: expiresAt,
-          })
-        )
-      );
-
-      // ── 5. Update global stats ───────────────────────────────────────────────
-      await updateCanvasStats({ reserved: pixelRows.length });
-
       return NextResponse.json({ success: true, reserved: pixelIds.length, expires_at: expiresAt });
     } catch (err) {
       await client.query('ROLLBACK').catch(() => {});
@@ -112,7 +95,6 @@ export async function DELETE(request: Request) {
 
     await initPostgres();
 
-    // Fetch the reservations first so we know which RTDB nodes to clear
     const existing = await pool.query(
       `SELECT pixel_id, x, y FROM pixel_reservations WHERE session_id = $1`,
       [session_id]
@@ -128,13 +110,6 @@ export async function DELETE(request: Request) {
       `DELETE FROM pixel_reservations WHERE session_id = $1`,
       [session_id]
     );
-
-    // Release from Firebase RTDB (set nodes to null = delete)
-    const pixelIds = rows.map((r) => Number(r.pixel_id));
-    await releasePixelEvents(pixelIds);
-
-    // Update stats
-    await updateCanvasStats({ reserved: -rows.length });
 
     return NextResponse.json({ success: true, released: rows.length });
   } catch (err: any) {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { initPostgres, pool } from '@/lib/db';
-import { getPricingConfiguration } from '@/lib/pricing';
+import { getPricingConfiguration } from '@/lib/pricingServer';
 
 export async function GET() {
   try {

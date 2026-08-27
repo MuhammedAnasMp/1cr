@@ -121,9 +121,11 @@ export const BlockPurchaseModal: React.FC = () => {
 
       const userPayload = {
         id: currentUser?.id || `u_${Date.now()}`,
+        firebase_uid: currentUser?.firebase_uid || currentUser?.id || `u_${Date.now()}`,
         name: name || currentUser?.name || 'Block Sovereign',
         email: currentUser?.email || `${(username || 'buyer').toLowerCase()}@vist.bio`,
         avatar: imageUrl || currentUser?.avatar || '',
+        created_at: currentUser?.created_at || new Date().toISOString(),
       };
 
       const profilePayload = {

@@ -4,12 +4,12 @@
 
 @layer base {
   :root {
-    --bg-main: #131313;
-    --bg-surface: #20201f;
-    --border-color: #444748;
-    --primary-color: #ffffff;
-    --text-main: #e5e2e1;
-    --text-muted: #c4c7c8;
+    --bg-main: #fcf8ff;
+    --bg-surface: #efecf8;
+    --border-color: #c7c4d7;
+    --primary-color: #4648d4;
+    --text-main: #1b1b23;
+    --text-muted: #464554;
   }
 
   body {
@@ -20,23 +20,23 @@
   }
 }
 
-/* Google Dark Custom Scrollbars */
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #131313;
+  background: #fcf8ff;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #444748;
+  background: #c7c4d7;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #B6B2FF;
+  background: #4648d4;
 }
 
 /* Canvas Crosshair & Selection Cursor */
